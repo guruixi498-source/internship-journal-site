@@ -11,10 +11,13 @@
       <nav class="topbar" aria-label="页面导航">
         <span class="brand">成长记录</span>
         <div class="nav-links">
-          <a href="#internship">实习收获</a>
-          <a href="#learning">学习感悟</a>
-          <a href="#thinking">个人思考</a>
-          <a href="#documents">文档资料</a>
+          <a class="active" href="#home" data-view-target="home">首页概览</a>
+          <a href="#records" data-view-target="records">记录中心</a>
+          <a href="#plans" data-view-target="plans">计划中心</a>
+          <a href="#personal" data-view-target="personal">个人档案</a>
+          <a href="#cloud" data-view-target="cloud">云同步</a>
+          <a href="#ai" data-view-target="ai">AI 助手</a>
+          <a href="#backup" data-view-target="backup">数据备份</a>
         </div>
       </nav>
 
@@ -28,7 +31,7 @@
     </header>
 
     <main>
-      <section class="summary-grid" aria-label="记录概览">
+      <section class="summary-grid app-view" data-view="home" aria-label="记录概览">
         <article class="summary-card">
           <span id="totalCount">0</span>
           <p>全部记录</p>
@@ -37,17 +40,108 @@
           <span id="documentCount">0</span>
           <p>文档资料</p>
         </article>
-        <article class="summary-card">
-          <span id="latestDate">暂无</span>
-          <p>最近更新</p>
+        <article class="summary-card date-jump-card">
+          <label for="dateJump">日历跳转</label>
+          <input id="dateJump" type="date" aria-describedby="dateJumpHint" />
+          <p id="dateJumpHint">选择有更新的日期，快速查看当天记录。</p>
+          <button id="clearDateFilter" class="clear-date-button hidden" type="button">查看全部日期</button>
         </article>
       </section>
 
-      <section class="workspace">
+      <section id="dashboard" class="dashboard-section panel app-view" data-view="home" aria-labelledby="dashboardTitle">
+        <div class="dashboard-heading">
+          <div>
+            <p class="section-label">成长看板</p>
+            <h2 id="dashboardTitle">记录趋势与复盘概览</h2>
+          </div>
+          <p>自动根据你的记录生成统计，帮助你看到学习节奏、重点标签和不同分区的沉淀情况。</p>
+        </div>
+        <div id="dashboardStats" class="dashboard-stats"></div>
+        <div class="dashboard-grid">
+          <div>
+            <h3>分区分布</h3>
+            <div id="categoryBars" class="metric-list"></div>
+          </div>
+          <div>
+            <h3>最近月份</h3>
+            <div id="monthBars" class="metric-list"></div>
+          </div>
+          <div>
+            <h3>高频标签</h3>
+            <div id="topTags" class="tag-list"></div>
+          </div>
+          <div>
+            <h3>目标完成率</h3>
+            <div id="planProgressBars" class="metric-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="plans" class="plans-section panel app-view" data-view="plans" hidden aria-labelledby="plansTitle">
+        <div class="plans-heading">
+          <div>
+            <p class="section-label">计划中心</p>
+            <h2 id="plansTitle">明日、周计划与长期目标</h2>
+          </div>
+          <p>把未来要做的事情和复盘记录分开管理，完成后可以标记，也可以删除不再需要的计划。</p>
+        </div>
+
+        <form id="planForm" class="plan-form" novalidate>
+          <input id="editPlanId" type="hidden" />
+          <label>
+            计划类型
+            <select id="planType" required>
+              <option value="tomorrow">明日计划</option>
+              <option value="week">周计划</option>
+              <option value="longTerm">长期计划</option>
+            </select>
+          </label>
+          <label>
+            计划标题
+            <input id="planTitle" type="text" maxlength="50" placeholder="例如：完成接口联调复盘" required />
+          </label>
+          <label>
+            计划说明
+            <input id="planNote" type="text" maxlength="160" placeholder="补充具体行动、目标或衡量标准..." />
+          </label>
+          <p id="planMessage" class="form-message" role="status" aria-live="polite"></p>
+          <div class="form-actions">
+            <button id="savePlanButton" type="submit">添加计划</button>
+            <button id="cancelPlanEditButton" class="ghost-button hidden" type="button">取消编辑</button>
+          </div>
+        </form>
+
+        <div class="plan-columns" aria-live="polite">
+          <section class="plan-column" aria-labelledby="tomorrowPlansTitle">
+            <div class="plan-column-heading">
+              <h3 id="tomorrowPlansTitle">明日计划</h3>
+              <span id="tomorrowPlanCount">0</span>
+            </div>
+            <div id="tomorrowPlanList" class="plan-list"></div>
+          </section>
+          <section class="plan-column" aria-labelledby="weekPlansTitle">
+            <div class="plan-column-heading">
+              <h3 id="weekPlansTitle">周计划</h3>
+              <span id="weekPlanCount">0</span>
+            </div>
+            <div id="weekPlanList" class="plan-list"></div>
+          </section>
+          <section class="plan-column" aria-labelledby="longTermPlansTitle">
+            <div class="plan-column-heading">
+              <h3 id="longTermPlansTitle">长期计划</h3>
+              <span id="longTermPlanCount">0</span>
+            </div>
+            <div id="longTermPlanList" class="plan-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="records" class="workspace app-view" data-view="records" hidden>
         <aside class="panel form-panel" aria-labelledby="formTitle">
           <p class="section-label">添加内容</p>
           <h2 id="formTitle">新增记录 / 文档</h2>
           <form id="entryForm" novalidate>
+            <input id="editEntryId" type="hidden" />
             <label>
               分区
               <select id="entryCategory" required>
@@ -55,6 +149,7 @@
                 <option value="learning">学习感悟</option>
                 <option value="thinking">个人思考</option>
                 <option value="documents">文档 / 资料</option>
+                <option value="projects">项目记录</option>
               </select>
             </label>
 
@@ -63,18 +158,79 @@
               <input id="entryTitle" type="text" maxlength="40" placeholder="例如：第一次独立完成接口联调" required />
             </label>
 
+            <div class="template-tools">
+              <label>
+                复盘模板
+                <select id="reviewTemplate">
+                  <option value="">不使用模板</option>
+                  <option value="daily">每日复盘</option>
+                  <option value="weekly">周复盘</option>
+                  <option value="project">项目复盘</option>
+                  <option value="interview">面试素材整理</option>
+                </select>
+              </label>
+              <button id="applyTemplate" class="ghost-button" type="button">套用模板</button>
+            </div>
+            <pre id="templatePreview" class="template-preview hidden">选择模板后，这里会显示模板内容预览。</pre>
+
             <label>
               内容
               <textarea id="entryContent" rows="5" maxlength="500" placeholder="写下重点收获、感悟或资料说明..." required></textarea>
             </label>
+
+            <label>
+              标签
+              <input id="entryTags" type="text" maxlength="120" placeholder="例如：沟通、前端、复盘，用顿号或逗号分隔" />
+            </label>
+
+            <label>
+              关联公司（可选）
+              <input id="entryCompany" type="text" maxlength="50" placeholder="例如：某某科技有限公司" />
+            </label>
+
+            <div id="projectFields" class="project-fields hidden">
+              <label>
+                项目类型
+                <select id="projectType">
+                  <option value="school">学校小组作业</option>
+                  <option value="competition">竞赛项目</option>
+                  <option value="vibe">Vibe Coding / 个人产品</option>
+                  <option value="other">其他项目</option>
+                </select>
+              </label>
+              <label>
+                项目背景
+                <textarea id="projectBackground" rows="3" maxlength="400" placeholder="项目为什么要做？面向什么问题、课程、比赛或用户需求？"></textarea>
+              </label>
+              <label>
+                技术栈
+                <input id="projectTechStack" type="text" maxlength="160" placeholder="例如：React、Node.js、Python、Supabase，用顿号或逗号分隔" />
+              </label>
+              <label>
+                实现过程简述
+                <textarea id="projectImplementation" rows="3" maxlength="600" placeholder="简述从需求拆解、功能模块、技术方案到难点解决的过程，突出你的个人贡献。"></textarea>
+              </label>
+              <label>
+                项目反思
+                <textarea id="projectReflection" rows="3" maxlength="500" placeholder="写下做得好的地方、遇到的问题、下次会如何改进，以及面试中可以讲的亮点。"></textarea>
+              </label>
+            </div>
 
             <label id="linkField" class="hidden">
               文档链接（可选）
               <input id="entryLink" type="url" placeholder="https://example.com/document" />
             </label>
 
+            <label class="checkbox-label">
+              <input id="entryFavorite" type="checkbox" />
+              标记为重点记录
+            </label>
+
             <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
-            <button type="submit">保存记录</button>
+            <div class="form-actions">
+              <button id="saveEntryButton" type="submit">保存记录</button>
+              <button id="cancelEditButton" class="ghost-button hidden" type="button">取消编辑</button>
+            </div>
           </form>
         </aside>
 
@@ -90,7 +246,21 @@
               <button class="filter-button" type="button" data-filter="learning">学习</button>
               <button class="filter-button" type="button" data-filter="thinking">思考</button>
               <button class="filter-button" type="button" data-filter="documents">文档</button>
+              <button class="filter-button" type="button" data-filter="projects">项目</button>
             </div>
+          </div>
+
+          <div class="record-tools" aria-label="记录检索工具">
+            <input id="searchInput" type="search" placeholder="搜索标题、内容、标签或公司..." />
+            <input id="monthFilter" type="month" aria-label="按月份筛选" />
+            <select id="tagFilter" aria-label="按标签筛选">
+              <option value="">全部标签</option>
+            </select>
+            <label class="checkbox-label inline-checkbox">
+              <input id="favoriteOnly" type="checkbox" />
+              只看重点
+            </label>
+            <button id="resetRecordFilters" class="clear-date-button" type="button">重置筛选</button>
           </div>
 
           <div id="entriesList" class="entries-list" aria-live="polite"></div>
@@ -98,7 +268,219 @@
         </section>
       </section>
 
-      <section class="section-grid">
+      <section id="personal" class="personal-section panel app-view" data-view="personal" hidden aria-labelledby="personalTitle">
+        <div class="personal-preview">
+          <div>
+            <p class="section-label">个人信息</p>
+            <h2 id="personalTitle">技术能力与实习联系人档案</h2>
+            <p>
+              集中整理已经掌握的技术、个人能力，以及不同实习公司的简介、leader 和同事信息。
+            </p>
+          </div>
+          <button id="togglePersonalPanel" class="secondary-button" type="button">打开个人信息板块</button>
+        </div>
+
+        <div id="personalPanel" class="personal-panel hidden">
+          <div class="profile-grid">
+            <form id="profileForm" class="profile-form" novalidate>
+              <h3>我的技术与能力</h3>
+              <label>
+                掌握的技术
+                <textarea id="profileSkills" rows="4" maxlength="400" placeholder="例如：HTML、CSS、JavaScript、Git、接口联调..."></textarea>
+              </label>
+              <label>
+                个人能力
+                <textarea id="profileAbilities" rows="4" maxlength="400" placeholder="例如：需求理解、沟通协作、问题拆解、复盘总结..."></textarea>
+              </label>
+              <p id="profileMessage" class="form-message" role="status" aria-live="polite"></p>
+              <button type="submit">保存技术与能力</button>
+            </form>
+
+            <div class="profile-display">
+              <h3>当前展示</h3>
+              <div>
+                <h4>掌握的技术</h4>
+                <div id="skillsList" class="tag-list"></div>
+              </div>
+              <div>
+                <h4>个人能力</h4>
+                <div id="abilitiesList" class="tag-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="company-workspace">
+            <form id="companyForm" class="company-form" novalidate>
+              <h3>添加实习公司信息</h3>
+              <label>
+                公司名称
+                <input id="companyName" type="text" maxlength="50" placeholder="例如：某某科技有限公司" required />
+              </label>
+              <label>
+                公司简介
+                <textarea id="companyIntro" rows="4" maxlength="500" placeholder="记录公司业务、团队方向、实习岗位内容..." required></textarea>
+              </label>
+              <label>
+                Leader 信息
+                <input id="leaderInfo" type="text" maxlength="120" placeholder="例如：张老师｜前端负责人｜负责需求评审和代码指导" />
+              </label>
+              <label>
+                同事信息
+                <textarea id="colleagueInfo" rows="3" maxlength="400" placeholder="例如：李同学｜后端协作；王同学｜测试协作..."></textarea>
+              </label>
+              <p id="companyMessage" class="form-message" role="status" aria-live="polite"></p>
+              <button type="submit">保存公司档案</button>
+            </form>
+
+            <div class="company-list-wrap">
+              <h3>实习公司档案</h3>
+              <div id="companyList" class="company-list" aria-live="polite"></div>
+              <p id="companyEmptyState" class="empty-state">暂无公司信息，可以先添加第一家公司。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cloud" class="cloud-section panel app-view" data-view="cloud" hidden aria-labelledby="cloudTitle">
+        <div class="cloud-heading">
+          <div>
+            <p class="section-label">云端同步</p>
+            <h2 id="cloudTitle">登录后跨电脑同步记录</h2>
+            <p>
+              使用 Supabase 保存你的记录、计划、个人档案和公司档案。换电脑后打开网页，配置同一个 Supabase 项目并登录同一账号即可继续在线编辑。
+            </p>
+          </div>
+        </div>
+
+        <div class="cloud-grid">
+          <section class="cloud-card" aria-labelledby="cloudConfigTitle">
+            <h3 id="cloudConfigTitle">1. Supabase 配置</h3>
+            <label>
+              Project URL
+              <input id="cloudProjectUrl" type="url" placeholder="https://xxxx.supabase.co" />
+            </label>
+            <label>
+              Anon Public Key
+              <input id="cloudAnonKey" type="password" placeholder="粘贴 Supabase anon public key" />
+            </label>
+            <div class="form-actions">
+              <button id="saveCloudConfig" class="secondary-button" type="button">保存云配置</button>
+              <button id="clearCloudConfig" class="ghost-button" type="button">清除配置</button>
+            </div>
+            <p id="cloudConfigMessage" class="form-message" role="status" aria-live="polite"></p>
+            <p class="privacy-note">Supabase anon key 是公开前端 key，真正的数据权限由数据库 RLS 策略控制。</p>
+          </section>
+
+          <section class="cloud-card" aria-labelledby="cloudAuthTitle">
+            <h3 id="cloudAuthTitle">2. 账号登录</h3>
+            <form id="cloudAuthForm" novalidate>
+              <label>
+                邮箱
+                <input id="cloudEmail" type="email" autocomplete="email" placeholder="你的邮箱" required />
+              </label>
+              <label>
+                密码
+                <input id="cloudPassword" type="password" autocomplete="current-password" placeholder="至少 6 位密码" required />
+              </label>
+              <label>
+                操作
+                <select id="cloudAuthMode">
+                  <option value="signin">登录已有账号</option>
+                  <option value="signup">注册新账号</option>
+                </select>
+              </label>
+              <div class="form-actions">
+                <button id="cloudAuthSubmit" type="submit">继续</button>
+                <button id="cloudSignOut" class="ghost-button" type="button">退出登录</button>
+              </div>
+            </form>
+            <p id="cloudAuthMessage" class="form-message" role="status" aria-live="polite"></p>
+          </section>
+        </div>
+
+        <section class="cloud-card cloud-sync-card" aria-labelledby="cloudSyncTitle">
+          <div>
+            <p class="section-label">同步状态</p>
+            <h3 id="cloudSyncTitle">当前设备与云端</h3>
+            <p id="cloudStatus" class="cloud-status">尚未连接云端。</p>
+          </div>
+          <div class="backup-actions">
+            <button id="pushCloudData" class="secondary-button" type="button">上传本机数据到云端</button>
+            <button id="pullCloudData" class="ghost-button" type="button">从云端拉取数据</button>
+          </div>
+          <p id="cloudSyncMessage" class="form-message" role="status" aria-live="polite"></p>
+        </section>
+      </section>
+
+      <section id="backup" class="backup-section panel app-view" data-view="backup" hidden aria-labelledby="backupTitle">
+        <div>
+          <p class="section-label">数据迁移</p>
+          <h2 id="backupTitle">离线备份与手动迁移</h2>
+          <p>
+            云同步之外，仍建议定期导出 JSON 或 Markdown。JSON 可作为离线备份，Markdown 适合整理周报、复盘和面试素材。
+          </p>
+        </div>
+        <div class="backup-actions">
+          <button id="exportData" class="secondary-button" type="button">导出全部数据</button>
+          <button id="exportMarkdown" class="secondary-button" type="button">导出 Markdown</button>
+          <label class="import-button">
+            导入备份文件
+            <input id="importData" type="file" accept="application/json,.json" />
+          </label>
+        </div>
+        <p id="backupMessage" class="form-message" role="status" aria-live="polite"></p>
+      </section>
+
+      <section id="ai" class="ai-section panel app-view" data-view="ai" hidden aria-labelledby="aiTitle">
+        <div class="ai-heading">
+          <div>
+            <p class="section-label">AI 助手</p>
+            <h2 id="aiTitle">复盘、周报与面试稿生成</h2>
+            <p>本地个人版可配置 Gemini API Key。后续升级在线版时，可替换为后端代理，避免 Key 暴露。</p>
+          </div>
+        </div>
+
+        <div class="ai-grid">
+          <section class="ai-config" aria-labelledby="aiConfigTitle">
+            <h3 id="aiConfigTitle">Gemini 配置</h3>
+            <label>
+              API Key
+              <input id="aiApiKey" type="password" placeholder="粘贴你的 Gemini API Key，仅保存在本机浏览器" />
+            </label>
+            <label>
+              模型
+              <input id="aiModel" type="text" value="gemini-1.5-flash" />
+            </label>
+            <div class="form-actions">
+              <button id="saveAiConfig" class="secondary-button" type="button">保存配置</button>
+              <button id="clearAiConfig" class="ghost-button" type="button">清除 Key</button>
+            </div>
+            <p id="aiConfigMessage" class="form-message" role="status" aria-live="polite"></p>
+            <p class="privacy-note">提示：本地版适合个人测试。上线公开访问前，应改为后端接口保存 Key。</p>
+          </section>
+
+          <section class="ai-actions" aria-labelledby="aiActionsTitle">
+            <h3 id="aiActionsTitle">选择生成任务</h3>
+            <button class="ai-task-button" type="button" data-ai-task="weeklyReport">生成周报</button>
+            <button class="ai-task-button" type="button" data-ai-task="projectInterview">项目面试稿</button>
+            <button class="ai-task-button" type="button" data-ai-task="planSuggestions">周计划 / 长期计划建议</button>
+            <p id="aiStatus" class="form-message" role="status" aria-live="polite"></p>
+          </section>
+        </div>
+
+        <section class="ai-output-wrap" aria-labelledby="aiOutputTitle">
+          <div class="records-heading">
+            <div>
+              <p class="section-label">生成结果</p>
+              <h3 id="aiOutputTitle">AI 输出</h3>
+            </div>
+            <button id="copyAiOutput" class="clear-date-button" type="button">复制结果</button>
+          </div>
+          <pre id="aiOutput" class="ai-output">生成结果会显示在这里。</pre>
+        </section>
+      </section>
+
+      <section class="section-grid app-view" data-view="records" hidden>
         <article id="internship" class="info-card">
           <span>01</span>
           <h2>实习收获区</h2>
@@ -119,6 +501,11 @@
           <h2>文档 / 资料区</h2>
           <p>保存链接、资料说明、读书笔记入口或后续需要补充的文档。</p>
         </article>
+        <article id="projects" class="info-card">
+          <span>05</span>
+          <h2>项目记录区</h2>
+          <p>记录课程作业、竞赛项目和个人产品，沉淀背景、技术栈、反思和面试素材。</p>
+        </article>
       </section>
     </main>
 
@@ -126,6 +513,7 @@
       <p>把每天的小收获留下来，未来回看时会更清楚自己如何成长。</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
   </body>
 </html>
