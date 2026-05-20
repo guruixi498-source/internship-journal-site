@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>实习与学习记录</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <nav class="topbar" aria-label="页面导航">
+        <span class="brand">成长记录</span>
+        <div class="nav-links">
+          <a href="#internship">实习收获</a>
+          <a href="#learning">学习感悟</a>
+          <a href="#thinking">个人思考</a>
+          <a href="#documents">文档资料</a>
+        </div>
+      </nav>
+
+      <section class="hero-content">
+        <p class="eyebrow">Internship · Learning · Reflection</p>
+        <h1>记录每一次实践后的收获</h1>
+        <p>
+          用一个简洁的页面沉淀实习经验、学习心得、个人思考和常用资料，让零散的感悟逐渐成为可回顾的成长档案。
+        </p>
+      </section>
+    </header>
+
+    <main>
+      <section class="summary-grid" aria-label="记录概览">
+        <article class="summary-card">
+          <span id="totalCount">0</span>
+          <p>全部记录</p>
+        </article>
+        <article class="summary-card">
+          <span id="documentCount">0</span>
+          <p>文档资料</p>
+        </article>
+        <article class="summary-card">
+          <span id="latestDate">暂无</span>
+          <p>最近更新</p>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel form-panel" aria-labelledby="formTitle">
+          <p class="section-label">添加内容</p>
+          <h2 id="formTitle">新增记录 / 文档</h2>
+          <form id="entryForm" novalidate>
+            <label>
+              分区
+              <select id="entryCategory" required>
+                <option value="internship">实习收获</option>
+                <option value="learning">学习感悟</option>
+                <option value="thinking">个人思考</option>
+                <option value="documents">文档 / 资料</option>
+              </select>
+            </label>
+
+            <label>
+              标题
+              <input id="entryTitle" type="text" maxlength="40" placeholder="例如：第一次独立完成接口联调" required />
+            </label>
+
+            <label>
+              内容
+              <textarea id="entryContent" rows="5" maxlength="500" placeholder="写下重点收获、感悟或资料说明..." required></textarea>
+            </label>
+
+            <label id="linkField" class="hidden">
+              文档链接（可选）
+              <input id="entryLink" type="url" placeholder="https://example.com/document" />
+            </label>
+
+            <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+            <button type="submit">保存记录</button>
+          </form>
+        </aside>
+
+        <section class="panel records-panel" aria-labelledby="recordsTitle">
+          <div class="records-heading">
+            <div>
+              <p class="section-label">记录列表</p>
+              <h2 id="recordsTitle">按分区查看</h2>
+            </div>
+            <div class="filter-buttons" role="group" aria-label="筛选记录">
+              <button class="filter-button active" type="button" data-filter="all">全部</button>
+              <button class="filter-button" type="button" data-filter="internship">实习</button>
+              <button class="filter-button" type="button" data-filter="learning">学习</button>
+              <button class="filter-button" type="button" data-filter="thinking">思考</button>
+              <button class="filter-button" type="button" data-filter="documents">文档</button>
+            </div>
+          </div>
+
+          <div id="entriesList" class="entries-list" aria-live="polite"></div>
+          <p id="emptyState" class="empty-state">暂无记录，先添加一条属于今天的收获吧。</p>
+        </section>
+      </section>
+
+      <section class="section-grid">
+        <article id="internship" class="info-card">
+          <span>01</span>
+          <h2>实习收获区</h2>
+          <p>记录项目参与、协作经验、业务理解、工具方法和解决问题的过程。</p>
+        </article>
+        <article id="learning" class="info-card">
+          <span>02</span>
+          <h2>学习感悟区</h2>
+          <p>整理平时阅读、课程学习、技术练习后的理解与复盘。</p>
+        </article>
+        <article id="thinking" class="info-card">
+          <span>03</span>
+          <h2>个人思考区</h2>
+          <p>沉淀职业规划、效率习惯、沟通方式和自我观察。</p>
+        </article>
+        <article id="documents" class="info-card accent">
+          <span>04</span>
+          <h2>文档 / 资料区</h2>
+          <p>保存链接、资料说明、读书笔记入口或后续需要补充的文档。</p>
+        </article>
+      </section>
+    </main>
+
+    <footer>
+      <p>把每天的小收获留下来，未来回看时会更清楚自己如何成长。</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
