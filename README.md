@@ -79,7 +79,7 @@ http://127.0.0.1:8000/index.html
 
 ### 开发者
 
-维护者：Edy
+维护者：GU Ruixi
 
 ## English Overview
 

@@ -3,7 +3,7 @@
 ## 产品简介与使用说明书
 
 版本：1.0  
-维护者：Edy  
+维护者：GU Ruixi  
 在线地址：https://guruixi498-source.github.io/internship-journal-site/
 
 ---
