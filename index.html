@@ -48,6 +48,36 @@
         </article>
       </section>
 
+      <section class="onboarding-section panel app-view" data-view="home" aria-labelledby="onboardingTitle">
+        <div class="onboarding-heading">
+          <div>
+            <p class="section-label">快速开始</p>
+            <h2 id="onboardingTitle">第一次使用可以这样做</h2>
+          </div>
+          <p>按顺序完成登录、添加记录和创建计划，几分钟内就能开始积累自己的成长档案。</p>
+        </div>
+        <div class="onboarding-steps">
+          <article class="onboarding-step">
+            <span>01</span>
+            <h3>登录云同步</h3>
+            <p>注册或登录账号，让记录可以在不同电脑之间同步。</p>
+            <button class="ghost-button" type="button" data-view-target="cloud">去登录</button>
+          </article>
+          <article class="onboarding-step">
+            <span>02</span>
+            <h3>写第一条记录</h3>
+            <p>从实习、学习、思考、文档或项目中选择一种类型开始记录。</p>
+            <button class="ghost-button" type="button" data-view-target="records">去记录</button>
+          </article>
+          <article class="onboarding-step">
+            <span>03</span>
+            <h3>建立计划</h3>
+            <p>添加周计划或长期计划，并在完成后标记状态。</p>
+            <button class="ghost-button" type="button" data-view-target="plans">去计划</button>
+          </article>
+        </div>
+      </section>
+
       <section id="dashboard" class="dashboard-section panel app-view" data-view="home" aria-labelledby="dashboardTitle">
         <div class="dashboard-heading">
           <div>
@@ -356,20 +386,23 @@
           <section class="cloud-card cloud-config-card" aria-labelledby="cloudConfigTitle">
             <h3 id="cloudConfigTitle">1. 云端连接</h3>
             <p class="cloud-config-summary">
-              云同步已内置项目配置，普通用户无需手动填写 URL 或 Key。下方信息仅用于维护和排查问题。
+              云同步已内置项目配置，普通用户无需手动填写 URL 或 Key。登录后，本机修改会自动同步到云端。
             </p>
-            <label>
-              Project URL
-              <input id="cloudProjectUrl" type="url" readonly placeholder="https://xxxx.supabase.co" />
-            </label>
-            <label>
-              Publishable Key
-              <input id="cloudAnonKey" type="password" readonly placeholder="Supabase publishable key" />
-            </label>
-            <div class="form-actions">
-              <button id="saveCloudConfig" class="secondary-button" type="button">重新连接云端</button>
-              <button id="clearCloudConfig" class="ghost-button" type="button">恢复默认配置</button>
-            </div>
+            <details class="cloud-maintenance">
+              <summary>查看维护信息</summary>
+              <label>
+                Project URL
+                <input id="cloudProjectUrl" type="url" readonly placeholder="https://xxxx.supabase.co" />
+              </label>
+              <label>
+                Publishable Key
+                <input id="cloudAnonKey" type="password" readonly placeholder="Supabase publishable key" />
+              </label>
+              <div class="form-actions">
+                <button id="saveCloudConfig" class="secondary-button" type="button">重新连接云端</button>
+                <button id="clearCloudConfig" class="ghost-button" type="button">恢复默认配置</button>
+              </div>
+            </details>
             <p id="cloudConfigMessage" class="form-message" role="status" aria-live="polite"></p>
             <p class="privacy-note">Publishable key 是公开前端 key，真正的数据权限由数据库 RLS 策略控制。</p>
           </section>
@@ -394,10 +427,24 @@
               </label>
               <div class="form-actions">
                 <button id="cloudAuthSubmit" type="submit">继续</button>
+                <button id="forgotPasswordButton" class="ghost-button" type="button">忘记密码</button>
                 <button id="cloudSignOut" class="ghost-button" type="button">退出登录</button>
               </div>
             </form>
             <p id="cloudAuthMessage" class="form-message" role="status" aria-live="polite"></p>
+            <form id="passwordResetForm" class="password-reset-form hidden" novalidate>
+              <h4>设置新密码</h4>
+              <p>如果你从重置密码邮件进入页面，请在这里设置新密码。</p>
+              <label>
+                新密码
+                <input id="newCloudPassword" type="password" autocomplete="new-password" placeholder="至少 6 位新密码" />
+              </label>
+              <div class="form-actions">
+                <button id="updatePasswordButton" class="secondary-button" type="submit">更新密码</button>
+                <button id="cancelPasswordReset" class="ghost-button" type="button">取消</button>
+              </div>
+              <p id="passwordResetMessage" class="form-message" role="status" aria-live="polite"></p>
+            </form>
           </section>
         </div>
 
@@ -406,6 +453,16 @@
             <p class="section-label">同步状态</p>
             <h3 id="cloudSyncTitle">当前设备与云端</h3>
             <p id="cloudStatus" class="cloud-status">尚未连接云端。</p>
+            <dl class="sync-meta">
+              <div>
+                <dt>最后同步</dt>
+                <dd id="lastSyncTime">暂无</dd>
+              </div>
+              <div>
+                <dt>同步方式</dt>
+                <dd id="lastSyncAction">等待登录</dd>
+              </div>
+            </dl>
           </div>
           <div class="backup-actions">
             <button id="pushCloudData" class="secondary-button" type="button">上传本机数据到云端</button>

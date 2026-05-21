@@ -4,6 +4,7 @@ const COMPANY_STORAGE_KEY = "growthJournalCompanies";
 const PLAN_STORAGE_KEY = "growthJournalPlans";
 const AI_CONFIG_STORAGE_KEY = "growthJournalAiConfig";
 const CLOUD_CONFIG_STORAGE_KEY = "growthJournalCloudConfig";
+const CLOUD_SYNC_META_STORAGE_KEY = "growthJournalCloudSyncMeta";
 const CLOUD_TABLE_NAME = "journal_data";
 const DEFAULT_CLOUD_CONFIG = {
   url: "https://juvqrgcxxrretgourogt.supabase.co",
@@ -145,9 +146,17 @@ const cloudAuthForm = document.querySelector("#cloudAuthForm");
 const cloudEmail = document.querySelector("#cloudEmail");
 const cloudPassword = document.querySelector("#cloudPassword");
 const cloudAuthMode = document.querySelector("#cloudAuthMode");
+const forgotPasswordButton = document.querySelector("#forgotPasswordButton");
 const cloudSignOut = document.querySelector("#cloudSignOut");
 const cloudAuthMessage = document.querySelector("#cloudAuthMessage");
+const passwordResetForm = document.querySelector("#passwordResetForm");
+const newCloudPassword = document.querySelector("#newCloudPassword");
+const updatePasswordButton = document.querySelector("#updatePasswordButton");
+const cancelPasswordReset = document.querySelector("#cancelPasswordReset");
+const passwordResetMessage = document.querySelector("#passwordResetMessage");
 const cloudStatus = document.querySelector("#cloudStatus");
+const lastSyncTime = document.querySelector("#lastSyncTime");
+const lastSyncAction = document.querySelector("#lastSyncAction");
 const pushCloudData = document.querySelector("#pushCloudData");
 const pullCloudData = document.querySelector("#pullCloudData");
 const cloudSyncMessage = document.querySelector("#cloudSyncMessage");
@@ -175,10 +184,12 @@ let activeTag = "";
 let showFavoriteOnly = false;
 let aiConfig = loadAiConfig();
 let cloudConfig = loadCloudConfig();
+let cloudSyncMeta = loadCloudSyncMeta();
 let cloudClient = null;
 let cloudSession = null;
 let cloudSaveTimer = null;
 let isApplyingCloudData = false;
+let isPasswordRecovery = false;
 
 render();
 fillProfileForm();
@@ -657,6 +668,82 @@ cloudAuthForm.addEventListener("submit", async (event) => {
   }
 });
 
+forgotPasswordButton.addEventListener("click", async () => {
+  if (!ensureCloudClient()) {
+    showInlineMessage(cloudAuthMessage, "云端连接暂不可用，请稍后再试。");
+    return;
+  }
+
+  const email = cloudEmail.value.trim();
+
+  if (!email) {
+    showInlineMessage(cloudAuthMessage, "请先填写需要找回密码的邮箱。");
+    cloudEmail.focus();
+    return;
+  }
+
+  forgotPasswordButton.disabled = true;
+
+  try {
+    const { error } = await cloudClient.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}${window.location.pathname}#cloud`,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    showInlineMessage(cloudAuthMessage, "重置密码邮件已发送，请到邮箱打开链接后设置新密码。", true);
+  } catch (error) {
+    showInlineMessage(cloudAuthMessage, `发送重置邮件失败：${error.message}`);
+  } finally {
+    forgotPasswordButton.disabled = false;
+  }
+});
+
+passwordResetForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  if (!ensureCloudClient()) {
+    showInlineMessage(passwordResetMessage, "云端连接暂不可用，请稍后再试。");
+    return;
+  }
+
+  const password = newCloudPassword.value;
+
+  if (password.length < 6) {
+    showInlineMessage(passwordResetMessage, "新密码至少需要 6 位。");
+    newCloudPassword.focus();
+    return;
+  }
+
+  updatePasswordButton.disabled = true;
+
+  try {
+    const { error } = await cloudClient.auth.updateUser({ password });
+
+    if (error) {
+      throw error;
+    }
+
+    isPasswordRecovery = false;
+    newCloudPassword.value = "";
+    passwordResetForm.classList.add("hidden");
+    showInlineMessage(cloudAuthMessage, "密码已更新，当前账号可继续使用。", true);
+  } catch (error) {
+    showInlineMessage(passwordResetMessage, `更新密码失败：${error.message}`);
+  } finally {
+    updatePasswordButton.disabled = false;
+  }
+});
+
+cancelPasswordReset.addEventListener("click", () => {
+  isPasswordRecovery = false;
+  newCloudPassword.value = "";
+  passwordResetForm.classList.add("hidden");
+  showInlineMessage(passwordResetMessage, "");
+});
+
 cloudSignOut.addEventListener("click", async () => {
   if (!ensureCloudClient()) {
     showInlineMessage(cloudAuthMessage, "当前没有可用的云连接。");
@@ -940,6 +1027,24 @@ function normalizeCloudUrl(url) {
   return url.trim().replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
 }
 
+function loadCloudSyncMeta() {
+  const storedMeta = localStorage.getItem(CLOUD_SYNC_META_STORAGE_KEY);
+
+  if (!storedMeta) {
+    return { syncedAt: "", action: "等待登录" };
+  }
+
+  try {
+    const parsedMeta = JSON.parse(storedMeta);
+    return {
+      syncedAt: parsedMeta.syncedAt || "",
+      action: parsedMeta.action || "等待登录",
+    };
+  } catch {
+    return { syncedAt: "", action: "等待登录" };
+  }
+}
+
 function normalizePlan(plan) {
   return {
     id: plan.id || createId(),
@@ -998,6 +1103,10 @@ function saveAiConfigToStorage() {
 
 function saveCloudConfigToStorage() {
   localStorage.setItem(CLOUD_CONFIG_STORAGE_KEY, JSON.stringify(cloudConfig));
+}
+
+function saveCloudSyncMeta() {
+  localStorage.setItem(CLOUD_SYNC_META_STORAGE_KEY, JSON.stringify(cloudSyncMeta));
 }
 
 function render() {
@@ -1431,7 +1540,16 @@ async function initializeCloudSync() {
 
   cloudClient.auth.onAuthStateChange((event, session) => {
     cloudSession = session;
+    isPasswordRecovery = event === "PASSWORD_RECOVERY";
     renderCloudStatus();
+
+    if (isPasswordRecovery) {
+      setActiveView("cloud");
+      passwordResetForm.classList.remove("hidden");
+      newCloudPassword.focus();
+      showInlineMessage(passwordResetMessage, "请输入新密码完成重置。", true);
+      return;
+    }
 
     if (event === "SIGNED_IN" && session) {
       loadCloudData({ automatic: true });
@@ -1459,6 +1577,9 @@ function ensureCloudClient() {
 }
 
 function renderCloudStatus() {
+  renderSyncMeta();
+  passwordResetForm.classList.toggle("hidden", !isPasswordRecovery);
+
   if (!cloudConfig.url || !cloudConfig.anonKey) {
     cloudStatus.textContent = "云端配置缺失，请恢复默认配置后重试。";
     pushCloudData.disabled = true;
@@ -1479,6 +1600,22 @@ function renderCloudStatus() {
   pushCloudData.disabled = false;
   pullCloudData.disabled = false;
   cloudSignOut.disabled = false;
+}
+
+function renderSyncMeta() {
+  lastSyncTime.textContent = cloudSyncMeta.syncedAt
+    ? new Date(cloudSyncMeta.syncedAt).toLocaleString("zh-CN")
+    : "暂无";
+  lastSyncAction.textContent = cloudSyncMeta.action || "等待登录";
+}
+
+function updateSyncMeta(action) {
+  cloudSyncMeta = {
+    syncedAt: new Date().toISOString(),
+    action,
+  };
+  saveCloudSyncMeta();
+  renderSyncMeta();
 }
 
 function createAppDataPayload() {
@@ -1546,9 +1683,11 @@ async function saveCloudData({ showMessage = false } = {}) {
 
   if (error) {
     showInlineMessage(cloudSyncMessage, `云端保存失败：${error.message}`);
+    lastSyncAction.textContent = "保存失败";
     return;
   }
 
+  updateSyncMeta(showMessage ? "手动上传成功" : "自动保存成功");
   showInlineMessage(
     cloudSyncMessage,
     showMessage ? "本机数据已上传到云端。" : `已自动同步到云端：${new Date().toLocaleTimeString("zh-CN")}`,
@@ -1572,6 +1711,7 @@ async function loadCloudData({ automatic = false, showMessage = false } = {}) {
 
   if (error) {
     showInlineMessage(cloudSyncMessage, `云端读取失败：${error.message}`);
+    lastSyncAction.textContent = "读取失败";
     return;
   }
 
@@ -1582,6 +1722,7 @@ async function loadCloudData({ automatic = false, showMessage = false } = {}) {
   }
 
   applyAppDataPayload(data.payload);
+  updateSyncMeta(automatic ? "自动拉取成功" : "手动拉取成功");
   showInlineMessage(
     cloudSyncMessage,
     automatic
