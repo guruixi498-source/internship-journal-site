@@ -347,28 +347,31 @@
             <p class="section-label">云端同步</p>
             <h2 id="cloudTitle">登录后跨电脑同步记录</h2>
             <p>
-              使用 Supabase 保存你的记录、计划、个人档案和公司档案。换电脑后打开网页，配置同一个 Supabase 项目并登录同一账号即可继续在线编辑。
+              使用内置 Supabase 云端连接保存你的记录、计划、个人档案和公司档案。换电脑后打开网页，登录同一账号即可继续在线编辑。
             </p>
           </div>
         </div>
 
         <div class="cloud-grid">
-          <section class="cloud-card" aria-labelledby="cloudConfigTitle">
-            <h3 id="cloudConfigTitle">1. Supabase 配置</h3>
+          <section class="cloud-card cloud-config-card" aria-labelledby="cloudConfigTitle">
+            <h3 id="cloudConfigTitle">1. 云端连接</h3>
+            <p class="cloud-config-summary">
+              云同步已内置项目配置，普通用户无需手动填写 URL 或 Key。下方信息仅用于维护和排查问题。
+            </p>
             <label>
               Project URL
-              <input id="cloudProjectUrl" type="url" placeholder="https://xxxx.supabase.co" />
+              <input id="cloudProjectUrl" type="url" readonly placeholder="https://xxxx.supabase.co" />
             </label>
             <label>
-              Anon Public Key
-              <input id="cloudAnonKey" type="password" placeholder="粘贴 Supabase anon public key" />
+              Publishable Key
+              <input id="cloudAnonKey" type="password" readonly placeholder="Supabase publishable key" />
             </label>
             <div class="form-actions">
-              <button id="saveCloudConfig" class="secondary-button" type="button">保存云配置</button>
-              <button id="clearCloudConfig" class="ghost-button" type="button">清除配置</button>
+              <button id="saveCloudConfig" class="secondary-button" type="button">重新连接云端</button>
+              <button id="clearCloudConfig" class="ghost-button" type="button">恢复默认配置</button>
             </div>
             <p id="cloudConfigMessage" class="form-message" role="status" aria-live="polite"></p>
-            <p class="privacy-note">Supabase anon key 是公开前端 key，真正的数据权限由数据库 RLS 策略控制。</p>
+            <p class="privacy-note">Publishable key 是公开前端 key，真正的数据权限由数据库 RLS 策略控制。</p>
           </section>
 
           <section class="cloud-card" aria-labelledby="cloudAuthTitle">

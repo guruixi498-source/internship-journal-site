@@ -996,6 +996,17 @@ form button:hover,
   color: var(--primary);
 }
 
+.cloud-config-summary {
+  margin: 0 0 16px;
+  color: var(--muted);
+}
+
+.cloud-config-card input[readonly] {
+  background: rgba(49, 103, 92, 0.05);
+  color: var(--muted);
+  cursor: default;
+}
+
 .ai-task-button {
   display: block;
   width: 100%;

@@ -5,6 +5,10 @@ const PLAN_STORAGE_KEY = "growthJournalPlans";
 const AI_CONFIG_STORAGE_KEY = "growthJournalAiConfig";
 const CLOUD_CONFIG_STORAGE_KEY = "growthJournalCloudConfig";
 const CLOUD_TABLE_NAME = "journal_data";
+const DEFAULT_CLOUD_CONFIG = {
+  url: "https://juvqrgcxxrretgourogt.supabase.co",
+  anonKey: "sb_publishable_y7Ts0o9sRwovh8dZLH8FCg_fA4U6QOe",
+};
 
 const categoryLabels = {
   internship: "实习收获",
@@ -564,13 +568,13 @@ clearAiConfig.addEventListener("click", () => {
 });
 
 saveCloudConfig.addEventListener("click", async () => {
-  cloudConfig = {
-    url: cloudProjectUrl.value.trim(),
+  cloudConfig = normalizeCloudConfig({
+    url: cloudProjectUrl.value,
     anonKey: cloudAnonKey.value.trim(),
-  };
+  });
 
   if (!cloudConfig.url || !cloudConfig.anonKey) {
-    showInlineMessage(cloudConfigMessage, "请填写 Supabase Project URL 和 anon public key。");
+    showInlineMessage(cloudConfigMessage, "云端配置缺失，请恢复默认配置后重试。");
     return;
   }
 
@@ -581,18 +585,19 @@ saveCloudConfig.addEventListener("click", async () => {
   }
 
   saveCloudConfigToStorage();
+  fillCloudConfigForm();
   const isReady = await initializeCloudSync();
   showInlineMessage(
     cloudConfigMessage,
-    isReady ? "云配置已保存，可以注册或登录账号。" : "配置已保存，但 Supabase SDK 暂未加载成功。",
+    isReady ? "云端连接已就绪，可以注册或登录账号。" : "配置已保存，但 Supabase SDK 暂未加载成功。",
     isReady,
   );
 });
 
 clearCloudConfig.addEventListener("click", async () => {
-  const shouldClear = confirm("清除云配置会退出当前云同步连接，但不会删除云端数据。确定继续吗？");
+  const shouldReset = confirm("恢复默认云配置会退出当前云同步连接，但不会删除云端数据。确定继续吗？");
 
-  if (!shouldClear) {
+  if (!shouldReset) {
     return;
   }
 
@@ -600,20 +605,21 @@ clearCloudConfig.addEventListener("click", async () => {
     await cloudClient.auth.signOut();
   }
 
-  cloudConfig = { url: "", anonKey: "" };
+  cloudConfig = { ...DEFAULT_CLOUD_CONFIG };
   cloudClient = null;
   cloudSession = null;
-  localStorage.removeItem(CLOUD_CONFIG_STORAGE_KEY);
+  saveCloudConfigToStorage();
   fillCloudConfigForm();
+  await initializeCloudSync();
   renderCloudStatus();
-  showInlineMessage(cloudConfigMessage, "已清除当前浏览器的云配置。", true);
+  showInlineMessage(cloudConfigMessage, "已恢复默认云端配置。", true);
 });
 
 cloudAuthForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!ensureCloudClient()) {
-    showInlineMessage(cloudAuthMessage, "请先保存 Supabase 云配置。");
+    showInlineMessage(cloudAuthMessage, "云端连接暂不可用，请点击“重新连接云端”后再试。");
     return;
   }
 
@@ -912,18 +918,26 @@ function loadCloudConfig() {
   const storedConfig = localStorage.getItem(CLOUD_CONFIG_STORAGE_KEY);
 
   if (!storedConfig) {
-    return { url: "", anonKey: "" };
+    return { ...DEFAULT_CLOUD_CONFIG };
   }
 
   try {
     const parsedConfig = JSON.parse(storedConfig);
-    return {
-      url: parsedConfig.url || "",
-      anonKey: parsedConfig.anonKey || "",
-    };
+    return normalizeCloudConfig(parsedConfig);
   } catch {
-    return { url: "", anonKey: "" };
+    return { ...DEFAULT_CLOUD_CONFIG };
   }
+}
+
+function normalizeCloudConfig(config) {
+  const url = config && config.url ? normalizeCloudUrl(config.url) : DEFAULT_CLOUD_CONFIG.url;
+  const anonKey = config && config.anonKey ? config.anonKey : DEFAULT_CLOUD_CONFIG.anonKey;
+
+  return { url, anonKey };
+}
+
+function normalizeCloudUrl(url) {
+  return url.trim().replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
 }
 
 function normalizePlan(plan) {
@@ -1446,7 +1460,7 @@ function ensureCloudClient() {
 
 function renderCloudStatus() {
   if (!cloudConfig.url || !cloudConfig.anonKey) {
-    cloudStatus.textContent = "尚未配置 Supabase。请先填写 Project URL 和 anon public key。";
+    cloudStatus.textContent = "云端配置缺失，请恢复默认配置后重试。";
     pushCloudData.disabled = true;
     pullCloudData.disabled = true;
     cloudSignOut.disabled = true;
@@ -1454,7 +1468,7 @@ function renderCloudStatus() {
   }
 
   if (!cloudSession) {
-    cloudStatus.innerHTML = "云配置已保存，但当前未登录。登录后会自动同步数据。";
+    cloudStatus.innerHTML = "云端连接已就绪，当前未登录。登录后会自动同步数据。";
     pushCloudData.disabled = true;
     pullCloudData.disabled = true;
     cloudSignOut.disabled = true;
