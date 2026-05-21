@@ -640,7 +640,7 @@ cloudAuthForm.addEventListener("submit", async (event) => {
 
     showInlineMessage(
       cloudAuthMessage,
-      cloudAuthMode.value === "signup" ? "注册成功，请按邮箱提示确认后再登录。" : "登录成功，正在同步数据。",
+      cloudAuthMode.value === "signup" ? "注册成功。如果没有自动登录，请切换为登录已有账号后继续。" : "登录成功，正在同步数据。",
       true,
     );
     cloudPassword.value = "";
